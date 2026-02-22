@@ -2,7 +2,7 @@
 
 The goal of this project is to observe the effect of **miraclib** on immune cell populations in melanoma patients, comparing treatment responders and non-responders using PBMC cell count data collected over a 14-day treatment window (days 0, 7, 14).
 
-**Live dashboard:** https://teiko-wbe0.onrender.com
+**Live dashboard:** https://teiko-1.onrender.com
 
 ---
 
@@ -14,7 +14,7 @@ python load_data.py        # builds clinical_trial.db from cell-count.csv
 python run_part2.py        # cell frequency summary
 python run_part3.py        # GEE responder comparison + boxplot
 python run_part4.py        # baseline subset counts
-python run_dashboard.py    # launch dashboard at http://127.0.0.1:8050
+python run_dashboard.py    # launch dashboard
 ```
 
 Tests:
@@ -96,7 +96,7 @@ The run scripts are thin wrappers that call the analysis functions, print result
 
 Model: `percentage ~ response * time + sex + age + C(project_id)`
 
-BH FDR correction was applied across 10 tests (5 populations x 2 terms: main effect at baseline + response-by-time interaction). No cell population shows a statistically significant difference at baseline between responders and non-responders. CD4 T cells show a interesting divergence by day 7 (+0.65 pp, derived from the interaction term). B cell trajectories show a nominally significant differential decline in responders (p = 0.016) that does not survive FDR correction (p_adj = 0.082). I also noticed not much in-clustering effect.
+BH FDR correction was applied across 10 tests (5 populations x 2 terms: main effect at baseline + response-by-time interaction). No cell population shows a statistically significant difference at baseline between responders and non-responders. CD4 T cells show a interesting divergence by day 7 (+0.65 pp, derived from the interaction term). B cell trajectories show a nominally significant differential decline in responders (p = 0.016) that does not survive FDR correction (p_adj = 0.164). I also noticed not much in-clustering correlation.
 
 **Part 4:** 656 melanoma patients on miraclib with PBMC samples at baseline: 384 from prj1, 272 from prj3. 331 responders, 325 non-responders. 344 male, 312 female. Average B cell count in male responders at baseline: 10401.28.
 
