@@ -265,7 +265,7 @@ Each subject contributes 3 repeated PBMC samples, violating the independence ass
 
 **Family:** Gaussian with identity link (values in [2.1%, 49%], skewness 0.19-0.59, no boundary effects)
 
-**Correlation:** Exchangeable (estimated rho close to 0 — results robust across Independence and AR(1))
+**Correlation:** Exchangeable (estimated rho close to 0 and results robust across Independence and AR(1))
 
 **Multiple testing:** Benjamini-Hochberg FDR across 10 tests (5 populations x 2 terms)
 
