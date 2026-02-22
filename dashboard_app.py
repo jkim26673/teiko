@@ -123,6 +123,7 @@ def metric_card(label, value, color="primary"):
 
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
+server = app.server
 
 app.layout = dbc.Container([
     html.H2("Clinical Trial Dashboard", className="my-3"),
