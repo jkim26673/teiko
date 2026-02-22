@@ -2,7 +2,7 @@
 
 The goal of this project is to observe the effect of **miraclib** on immune cell populations in melanoma patients, comparing treatment responders and non-responders using PBMC cell count data collected over a 14-day treatment window (days 0, 7, 14).
 
-**Live dashboard:** https://teiko-PLACEHOLDER.onrender.com *(update after deploy)*
+**Live dashboard:** https://teiko-wbe0.onrender.com
 
 ---
 
@@ -40,19 +40,19 @@ cell_counts (sample_id, b_cell, cd8_t_cell, cd4_t_cell, nk_cell, monocyte)
 
 **Why this design?**
 
-Condition names and treatment names are stored once in lookup tables (`conditions`, `treatments`) and referenced by integer foreign key in `subjects`. This avoids storing repeated strings like `"melanoma"` or `"miraclib"` across thousands of subject rows, keeps updates atomic, and makes filtering by condition or treatment efficient via JOIN rather than a full-table string scan.
+Condition names and treatment names are stored once in lookup tables (`conditions`, `treatments`) and referenced by integer foreign key in `subjects`. I did this to avoid storing repeated strings like `"melanoma"` or `"miraclib"` across thousands of subject rows. This keeps updates atomic and makes filtering by condition or treatment efficient via JOIN rather than a full-table string scan.
 
-`subjects` and `samples` are separated because a subject is a person and a sample is a biological specimen — they have different attributes and a one-to-many relationship. `cell_counts` is separated from `samples` because it holds measurement data, and using `sample_id` as primary key enforces that each sample has exactly one set of counts.
+`subjects` and `samples` are separated because a subject is a person and a sample is a biological specimen (this is a one-to-many relationship). `cell_counts` is separated from `samples` because it holds measurement data, and using `sample_id` as primary key enforces that each sample has exactly one set of counts.
 
 Indexes are placed on the columns most commonly used in WHERE clauses and JOINs: `project_id`, `condition_id`, `treatment_id`, `response`, `sex`, `subject_id`, and `(sample_type, time_from_treatment_start)`.
 
 **How this scales:**
 
-- *Hundreds of projects* — each is one row in `projects`. Queries filter by `project_id` using the existing index. Cross-project comparisons are a GROUP BY away.
-- *Thousands of samples* — the normalized schema keeps row sizes small. The compound index on `(sample_type, time_from_treatment_start)` covers the most common filter combination.
-- *New conditions or treatments* — one INSERT into a lookup table, no schema change needed.
-- *New cell types* — the current `cell_counts` table uses fixed columns, which is efficient for a known fixed panel. If the panel varied across projects, `cell_counts` could be redesigned as a long-format table `(sample_id, cell_type, count)` at the cost of some query complexity.
-- *Various analytics* — the normalized schema supports arbitrary JOINs: time-series per subject, cross-project cohort comparisons, subgroup filtering by sex/age/response, and aggregation at any level.
+- *Hundreds of projects* : each is one row in `projects`. Queries filter by `project_id` using the existing index. Cross-project comparisons can be made using GROUP BY .
+- *Thousands of samples* : the normalized schema keeps row sizes small. The compound index on `(sample_type, time_from_treatment_start)` covers the most common filter combination.
+- *New conditions or treatments* : one INSERT into a lookup table, no schema change needed.
+- *New cell types* : the current `cell_counts` table uses fixed columns, which is efficient for a known fixed panel. If the panel varied across projects, `cell_counts` could be redesigned as a long-format table `(sample_id, cell_type, count)` at the cost of some query complexity.
+- *Various analytics* : the normalized schema supports arbitrary JOINs: time-series per subject, cross-project cohort comparisons, subgroup filtering by sex/age/response, and aggregation at any level.
 
 ---
 
@@ -66,25 +66,25 @@ teiko/
 │   ├── frequencies.py        # Part 2: relative frequencies per sample
 │   ├── statistics.py         # Part 3: GEE responder vs non-responder comparison
 │   ├── subset.py             # Part 4: melanoma PBMC baseline subset counts
-│   └── EDA.ipynb             # Part 3 exploratory analysis and model validation
+│   └── EDA.ipynb             # Part 3 GEE statistical analysis, exploratory analysis and model validation
 ├── run_part2.py              # print frequency summary + histogram
 ├── run_part3.py              # print GEE results + boxplot
 ├── run_part4.py              # print baseline subset counts
 ├── run_dashboard.py          # launch interactive dashboard
 ├── dashboard_app.py          # Plotly Dash app (5 tabs)
 ├── tests/
-│   └── test_analysis.py      # unit tests (in-memory DB) + integration tests
+│   └── test_analysis.py      # unit tests  + integration tests
 ├── cell-count.csv            # source data
 └── requirements.txt
 ```
 
 **Design rationale:**
 
-The `analysis/` directory is a Python package so all run scripts and the dashboard import from a single source of truth. Each part of the analysis lives in its own module rather than one large file, which keeps each concern isolated and makes unit testing straightforward.
+The `analysis/` directory is a Python package so all run scripts and the dashboard import from the same folder. Each part of the analysis lives in its own module.
 
 `db.py` centralizes the DB path and the `CELL_TYPES` list. Having `CELL_TYPES` in one place means adding or renaming a population requires a change in exactly one file, and both the analysis functions and tests stay in sync automatically.
 
-The run scripts are thin wrappers — they call the analysis functions, print results, and show plots. The dashboard calls the same functions, so both paths always reflect the same underlying logic.
+The run scripts are thin wrappers that call the analysis functions, print results, and show plots. The dashboard calls the same functions, so both paths always reflect the same underlying logic.
 
 ---
 
@@ -96,7 +96,7 @@ The run scripts are thin wrappers — they call the analysis functions, print re
 
 Model: `percentage ~ response * time + sex + age + C(project_id)`
 
-BH FDR correction was applied across 10 tests (5 populations x 2 terms: main effect at baseline + response-by-time interaction). No cell population shows a statistically significant difference at baseline between responders and non-responders. CD4 T cells show a pharmacodynamic divergence by day 7 (+0.65 pp, derived from the interaction term). B cell trajectories show a nominally significant differential decline in responders (p = 0.016) that does not survive FDR correction (p_adj = 0.082).
+BH FDR correction was applied across 10 tests (5 populations x 2 terms: main effect at baseline + response-by-time interaction). No cell population shows a statistically significant difference at baseline between responders and non-responders. CD4 T cells show a interesting divergence by day 7 (+0.65 pp, derived from the interaction term). B cell trajectories show a nominally significant differential decline in responders (p = 0.016) that does not survive FDR correction (p_adj = 0.082). I also noticed not much in-clustering effect.
 
 **Part 4:** 656 melanoma patients on miraclib with PBMC samples at baseline: 384 from prj1, 272 from prj3. 331 responders, 325 non-responders. 344 male, 312 female. Average B cell count in male responders at baseline: 10401.28.
 
