@@ -50,7 +50,7 @@ Indexes are placed on the columns most commonly used in WHERE clauses and JOINs:
 
 - *Hundreds of projects* : each is one row in `projects`. Queries filter by `project_id` using the existing index. Cross-project comparisons can be made using GROUP BY .
 - *Thousands of samples* : the normalized schema keeps row sizes small. The compound index on `(sample_type, time_from_treatment_start)` covers the most common filter combination.
-- *New conditions or treatments* : one INSERT into a lookup table, no schema change needed.
+- *New conditions or treatments* : you can just add an INSERT into a lookup table with no schema change needed.
 - *New cell types* : the current `cell_counts` table uses fixed columns, which is efficient for a known fixed panel. If the panel varied across projects, `cell_counts` could be redesigned as a long-format table `(sample_id, cell_type, count)` at the cost of some query complexity.
 - *Various analytics* : the normalized schema supports arbitrary JOINs: time-series per subject, cross-project cohort comparisons, subgroup filtering by sex/age/response, and aggregation at any level.
 
