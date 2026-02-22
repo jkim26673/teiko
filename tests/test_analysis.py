@@ -1,10 +1,7 @@
-"""
-tests/test_analysis.py
-
-Unit and integration tests for the analysis package (Parts 2, 3, 4).
-Unit tests use an in-memory SQLite DB with known fixture data.
-Integration tests run against the real clinical_trial.db.
-"""
+# tests/test_analysis.py
+# Unit and integration tests for the analysis package (Parts 2, 3, 4).
+# Unit tests use in-memory SQLite DB.
+# Integration tests run against the clinical_trial.db.
 
 import os
 import sqlite3
@@ -54,7 +51,7 @@ def make_db():
         CREATE TABLE subjects (
             subject_id TEXT PRIMARY KEY, project_id TEXT NOT NULL,
             condition_id INTEGER NOT NULL, treatment_id INTEGER NOT NULL,
-            response TEXT, sex TEXT
+            response TEXT, sex TEXT, age INTEGER
         );
         CREATE TABLE samples (
             sample_id TEXT PRIMARY KEY, subject_id TEXT NOT NULL,
@@ -70,10 +67,10 @@ def make_db():
     conn.execute("INSERT INTO conditions (condition_name) VALUES ('melanoma'), ('healthy')")
     conn.execute("INSERT INTO treatments (treatment_name) VALUES ('miraclib'), ('placebo')")
     conn.execute("""INSERT INTO subjects VALUES
-        ('subj1','prj1',1,1,'yes','M'), ('subj2','prj1',1,1,'yes','M'),
-        ('subj3','prj1',1,1,'yes','F'), ('subj4','prj1',1,1,'no','M'),
-        ('subj5','prj1',1,1,'no','M'),  ('subj6','prj1',1,1,'no','F'),
-        ('subj7','prj2',1,1,'yes','M'), ('subj8','prj1',2,1,NULL,'M')
+        ('subj1','prj1',1,1,'yes','M',45), ('subj2','prj1',1,1,'yes','M',52),
+        ('subj3','prj1',1,1,'yes','F',38), ('subj4','prj1',1,1,'no','M',60),
+        ('subj5','prj1',1,1,'no','M',55),  ('subj6','prj1',1,1,'no','F',47),
+        ('subj7','prj2',1,1,'yes','M',50), ('subj8','prj1',2,1,NULL,'M',40)
     """)
     conn.execute("""INSERT INTO samples VALUES
         ('smp01','subj1','PBMC',0), ('smp02','subj2','PBMC',0),
@@ -130,7 +127,7 @@ class TestCompareResponders(unittest.TestCase):
 
     def test_returns_two_dataframes(self):
         freq_df, stats_df = compare_responders(self.conn)
-        self.assertEqual(len(freq_df.columns), 5)
+        self.assertEqual(len(freq_df.columns), 9)
         self.assertEqual(len(stats_df), 5)
 
     def test_stats_has_one_row_per_population(self):
@@ -139,8 +136,8 @@ class TestCompareResponders(unittest.TestCase):
 
     def test_p_values_valid(self):
         _, stats_df = compare_responders(self.conn)
-        self.assertTrue((stats_df["p_value"] >= 0).all())
-        self.assertTrue((stats_df["p_value"] <= 1).all())
+        self.assertTrue((stats_df["p_response"] >= 0).all())
+        self.assertTrue((stats_df["p_response"] <= 1).all())
 
 
 #Part 4 
@@ -211,7 +208,7 @@ class TestPart3Integration(unittest.TestCase):
 
     def test_no_population_significant_after_correction(self):
         _, stats_df = compare_responders(self.conn)
-        self.assertFalse(stats_df["significant"].any())
+        self.assertFalse(stats_df["sig_response"].any())
 
 
 @unittest.skipUnless(os.path.exists(DB_PATH), "clinical_trial.db not found")
