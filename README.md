@@ -1,4 +1,4 @@
-# Teiko Miraclib Immune Cell Analysis Dashboard
+# Miraclib Immune Cell Analysis Dashboard
 
 The goal of this project is to observe the effect of **miraclib** on immune cell populations in melanoma patients, comparing treatment responders and non-responders using PBMC cell count data collected over a 14-day treatment window (days 0, 7, 14).
 
