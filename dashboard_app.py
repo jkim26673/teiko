@@ -145,7 +145,7 @@ app.layout = dbc.Container([
                 "No cell population shows a significant difference at baseline between responders "
                 "and non-responders (all FDR-adjusted p > 0.05). B cell trajectories show a nominally "
                 "significant differential decline in responders (p = 0.016, p_adj = 0.082) that does not "
-                "survive correction. CD4 T cells show a pharmacodynamic divergence by day 7 of treatment.",
+                "survive correction. CD4 T cells show a notable divergence by day 7 of treatment.",
                 color="info",
             ),
             dcc.Graph(figure=overview_fig),
