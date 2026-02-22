@@ -1,18 +1,13 @@
 """
-analysis/frequencies.py | Part 2 Solution
------------------------
 Part 2: Cell-frequency summary table.
-
 For each sample, computes the relative frequency of each immune cell
 population as a percentage of the total cell count.
 """
-
 import sqlite3
 import pandas as pd
 from analysis.db import CELL_TYPES
 
-def _fetch_raw_counts(conn: sqlite3.Connection) -> pd.DataFrame:
-    """Query DB — returns one row per sample with raw cell counts."""
+def fetch_raw_counts(conn: sqlite3.Connection) -> pd.DataFrame:
     query = """
         SELECT
             s.sample_id  AS sample,
@@ -26,8 +21,7 @@ def _fetch_raw_counts(conn: sqlite3.Connection) -> pd.DataFrame:
     """
     return pd.read_sql_query(query, conn)
 
-def _melt_to_frequencies(wide: pd.DataFrame) -> pd.DataFrame:
-    """Convert wide cell-count DataFrame to long-format frequency table."""
+def melt_to_frequencies(wide: pd.DataFrame) -> pd.DataFrame:
     wide["total_count"] = wide[CELL_TYPES].sum(axis=1)
     rows = []
     for _, r in wide.iterrows():
@@ -44,9 +38,7 @@ def _melt_to_frequencies(wide: pd.DataFrame) -> pd.DataFrame:
 def compute_frequencies(conn: sqlite3.Connection) -> pd.DataFrame:
     """
     Return a long-format DataFrame with the relative frequency of each
-    immune cell population for every sample.
-
-    Columns: sample, total_count, population, count, percentage
+    immune cell population per sample, with columns: sample, total_count, population, count, percentage
     """
-    wide = _fetch_raw_counts(conn)
-    return _melt_to_frequencies(wide)
+    wide = fetch_raw_counts(conn)
+    return melt_to_frequencies(wide)
