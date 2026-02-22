@@ -1,8 +1,7 @@
-"""
-Part 2: Cell-frequency summary table.
-For each sample, computes the relative frequency of each immune cell
-population as a percentage of the total cell count.
-"""
+# Part 2: Cell-frequency summary table.
+# For each sample, computes the relative frequency of each immune cell
+# population as a percentage of the total cell count.
+
 import sqlite3
 import pandas as pd
 from analysis.db import CELL_TYPES
